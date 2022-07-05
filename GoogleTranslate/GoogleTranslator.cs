@@ -125,9 +125,9 @@ public class GoogleTranslator
 
         dynamic innerJson = JArray.Parse(outerJson[0][2].ToString());
 
-        string test = innerJson[1][0][0][5][0][0];
+        string first = innerJson[1][0][0][5][0][0];
 
-        translations.Add(test);
+        translations.Add(first);
 
         try
         {
