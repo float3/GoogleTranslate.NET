@@ -1,6 +1,6 @@
 # GoogleTranslate.NET
 
-### Version 1.0.0
+### Version 1.1.0
 
 A free and unlimited .NET Library for google translate without an API Key.
 
