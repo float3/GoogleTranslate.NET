@@ -8,9 +8,12 @@ namespace TranslateTest;
 
 public class Tests
 {
+    private GoogleTranslator translator;
+
     [SetUp]
     public void Setup()
     {
+        translator = new();
     }
 
     [Test]
@@ -18,7 +21,6 @@ public class Tests
     {
         try
         {
-            GoogleTranslator translator = new GoogleTranslator();
             translator.TranslateSingle("Test");
             Assert.Pass("Exception Test Passed");
         }
@@ -35,7 +37,6 @@ public class Tests
     [Test]
     public void ParseTest()
     {
-        GoogleTranslator translator = new GoogleTranslator();
         List<string> test = translator.Translate("Hi", "eng", "de");
         if (test.Count > 0 && !string.IsNullOrEmpty(test[0]))
         {
@@ -50,8 +51,21 @@ public class Tests
     [Test]
     public void TranslateTest()
     {
-        GoogleTranslator translator = new GoogleTranslator();
         List<string> test = translator.Translate("Hi", "eng", "de");
+        if (test[0] == "Hi")
+        {
+            Assert.Pass("Translate Test Passed");
+        }
+        else
+        {
+            Assert.Fail("Translate Test Failed");
+        }
+    }
+    
+    [Test]
+    public void CacheTest()
+    {
+        List<string> test = translator.TranslateFromCacheOrNew("Hi", "eng", "de");
         if (test[0] == "Hi")
         {
             Assert.Pass("Translate Test Passed");

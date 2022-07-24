@@ -17,12 +17,13 @@ public class GoogleTranslator
 {
     private const string URLBase = "https://translate.google.";
     private const string URLExt = "/_/TranslateWebserverUi/data/batchexecute";
-    private readonly int _timeout;
 
+    private readonly int _timeout;
     private readonly string _url;
     private readonly string _urlSuffix;
-
     private readonly string _urlSuffixDefault = "de";
+
+    public Dictionary<string, List<string>> Cache = new();
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="GoogleTranslator" /> class.
@@ -133,7 +134,34 @@ public class GoogleTranslator
             // ignored
         }
 
+        if (!Cache.ContainsKey(text + langSrc + langTgt))
+        {
+            Cache.Add(text + langSrc + langTgt, translations);
+        }
+        else
+        {
+            Cache[text + langSrc + langTgt] = translations;
+        }
+
+
         return translations;
+    }
+
+    /// <summary>
+    ///     Translates the specified text or retrieves it from Cache.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="langTgt"></param>
+    /// <param name="langSrc"></param>
+    /// <returns></returns>
+    public List<string> TranslateFromCacheOrNew(string text, string langTgt = "auto", string langSrc = "auto")
+    {
+        if (Cache.ContainsKey(text + langSrc + langTgt))
+        {
+            return Cache[text + langSrc + langTgt];
+        }
+
+        return Translate(text, langSrc, langTgt);
     }
 
     /// <summary>
@@ -145,7 +173,19 @@ public class GoogleTranslator
     /// <returns></returns>
     public string TranslateSingle(string text, string langTgt = "auto", string langSrc = "auto")
     {
-        return Translate(text, langSrc, langTgt)[0];
+        return Translate(text, langSrc, langTgt).First();
+    }
+
+    /// <summary>
+    ///     Translates the specified text or retrieves it from Cache.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="langTgt"></param>
+    /// <param name="langSrc"></param>
+    /// <returns></returns>
+    public string TranslateFromCacheOrNewSingle(string text, string langTgt = "auto", string langSrc = "auto")
+    {
+        return TranslateFromCacheOrNew(text, langSrc, langTgt).First();
     }
 }
 
