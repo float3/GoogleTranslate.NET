@@ -110,11 +110,11 @@ public class GoogleTranslator
 
         result = arr[2].Trim();
 
-        dynamic outerJson = JArray.Parse(result);
+        JArray outerJson = JArray.Parse(result);
 
-        dynamic innerJson = JArray.Parse(outerJson[0][2].ToString());
+        JArray innerJson = JArray.Parse(outerJson[0][2].ToString());
 
-        string first = innerJson[1][0][0][5][0][0];
+        string first = innerJson[1][0][0][5][0][0].ToString();
 
         translations.Add(first);
 
