@@ -120,7 +120,7 @@ public class GoogleTranslator
 
         try
         {
-            foreach (dynamic item in innerJson[1][0][0][5][0][4])
+            foreach (JToken item in innerJson[1][0][0][5][0][4])
             {
                 if (item[0] != null && !translations.Contains(item[0].ToString()))
                 {
