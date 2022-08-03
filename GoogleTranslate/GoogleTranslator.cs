@@ -1,5 +1,10 @@
 ﻿#region
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -17,24 +22,27 @@ public class GoogleTranslator
 {
     private const string URLBase = "https://translate.google.";
     private const string URLExt = "/_/TranslateWebserverUi/data/batchexecute";
+    private const string GoogleTTSRPC = "MkEWBc";
+    private const string URLSuffixDefault = "com";
 
     private readonly int _timeout;
     private readonly string _url;
     private readonly string _urlSuffix;
-    private readonly string _urlSuffixDefault = "de";
 
-    public Dictionary<string, List<string>> Cache = new();
+    public Dictionary<TranslationParams, List<string>> Cache;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="GoogleTranslator" /> class.
+    ///     A list of known URL suffixes can be found in <see cref="Constants.URLSuffixes"/>.
     /// </summary>
     /// <param name="urlSuffix"></param>
     /// <param name="timeout"></param>
-    public GoogleTranslator(string urlSuffix = "en", int timeout = 100000)
+    public GoogleTranslator(string urlSuffix = URLSuffixDefault, int timeout = 100000)
     {
-        _urlSuffix = Constants.URLSuffixes.Contains(urlSuffix) ? urlSuffix : _urlSuffixDefault;
+        _urlSuffix = urlSuffix;
         _url = URLBase + _urlSuffix + URLExt;
         _timeout = timeout;
+        Cache = new Dictionary<TranslationParams, List<string>>();
     }
 
     // https://kovatch.medium.com/deciphering-google-batchexecute-74991e4e446c
@@ -42,14 +50,13 @@ public class GoogleTranslator
     ///     Formats the request content.
     /// </summary>
     /// <param name="text"></param>
-    /// <param name="langTgt"></param>
-    /// <param name="langSrc"></param>
+    /// <param name="tgtLang"></param>
+    /// <param name="srcLang"></param>
     /// <returns></returns>
-    private string PackageRPC(string text, string langTgt = "auto", string langSrc = "auto")
+    private static string PackageRPC(string text, string tgtLang = "auto", string srcLang = "auto")
     {
-        string googleTTSRPC = "MkEWBc";
         string rpc =
-            $"[[[\"{googleTTSRPC}\",\"[[\\\"{text.Trim()}\\\",\\\"{langSrc}\\\",\\\"{langTgt}\\\",true],[1]]\",null,\"generic\"]]]";
+            $"[[[\"{GoogleTTSRPC}\",\"[[\\\"{text.Trim()}\\\",\\\"{srcLang}\\\",\\\"{tgtLang}\\\",true],[1]]\",null,\"generic\"]]]";
 
         rpc = HttpUtility.UrlEncode(rpc);
 
@@ -58,25 +65,22 @@ public class GoogleTranslator
 
     /// <summary>
     ///     Translates the specified text.
+    ///     A list of known supported languages can be found in <see cref="Constants.Languages"/>.
     /// </summary>
     /// <param name="text"></param>
-    /// <param name="langTgt"></param>
-    /// <param name="langSrc"></param>
+    /// <param name="tgtLang"></param>
+    /// <param name="srcLang"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public List<string> Translate(string text, string langTgt = "auto", string langSrc = "auto")
+    public List<string> Translate(string text, string tgtLang = "auto", string srcLang = "auto")
     {
         List<string> translations = new();
-
-        if (!Constants.Languages.ContainsKey(langSrc)) langSrc = "auto";
-
-        if (!Constants.Languages.ContainsKey(langTgt)) langTgt = "auto";
 
         if (text.Length >= 5000) throw new Exception("Warning: Can only detect less than 5000 characters");
 
         if (text.Length == 0) throw new Exception("Empty Input");
 
-        string freq = PackageRPC(text, langSrc, langTgt);
+        string freq = PackageRPC(text, srcLang, tgtLang);
         byte[] bytes = Encoding.ASCII.GetBytes(freq);
 
 
@@ -113,14 +117,17 @@ public class GoogleTranslator
 
         JArray outerJson = JArray.Parse(result);
 
+        Debug.Assert(outerJson != null, nameof(outerJson) + " != null");
         JArray innerJson = JArray.Parse(outerJson[0][2].ToString());
 
+        Debug.Assert(innerJson != null, nameof(innerJson) + " != null");
         string first = innerJson[1][0][0][5][0][0].ToString();
 
         translations.Add(first);
 
         try
         {
+            Debug.Assert(innerJson != null, nameof(innerJson) + " != null");
             foreach (JToken item in innerJson[1][0][0][5][0][4])
             {
                 if (item[0] != null && !translations.Contains(item[0].ToString()))
@@ -134,13 +141,11 @@ public class GoogleTranslator
             // ignored
         }
 
-        if (!Cache.ContainsKey(text + langSrc + langTgt))
+        TranslationParams translationParams = new() {Text = text, SrcLang = srcLang, TgtLang = tgtLang};
+
+        if (!Cache.ContainsKey(translationParams))
         {
-            Cache.Add(text + langSrc + langTgt, translations);
-        }
-        else
-        {
-            Cache[text + langSrc + langTgt] = translations;
+            Cache.Add(translationParams, translations);
         }
 
 
@@ -149,43 +154,29 @@ public class GoogleTranslator
 
     /// <summary>
     ///     Translates the specified text or retrieves it from Cache.
+    ///     A list of known supported languages can be found in <see cref="Constants.Languages"/>.
     /// </summary>
     /// <param name="text"></param>
-    /// <param name="langTgt"></param>
-    /// <param name="langSrc"></param>
+    /// <param name="tgtLang"></param>
+    /// <param name="srcLang"></param>
     /// <returns></returns>
-    public List<string> TranslateFromCacheOrNew(string text, string langTgt = "auto", string langSrc = "auto")
+    public List<string> TranslateFromCacheOrNew(string text, string tgtLang = "auto", string srcLang = "auto")
     {
-        if (Cache.ContainsKey(text + langSrc + langTgt))
+        TranslationParams translationParams = new() {Text = text, SrcLang = srcLang, TgtLang = tgtLang};
+
+        if (Cache.ContainsKey(translationParams))
         {
-            return Cache[text + langSrc + langTgt];
+            return Cache[translationParams];
         }
 
-        return Translate(text, langSrc, langTgt);
+        return Translate(text, tgtLang, srcLang);
     }
 
-    /// <summary>
-    ///     Translates the specified text.
-    /// </summary>
-    /// <param name="text"></param>
-    /// <param name="langTgt"></param>
-    /// <param name="langSrc"></param>
-    /// <returns></returns>
-    public string TranslateSingle(string text, string langTgt = "auto", string langSrc = "auto")
+    public struct TranslationParams
     {
-        return Translate(text, langSrc, langTgt).First();
-    }
-
-    /// <summary>
-    ///     Translates the specified text or retrieves it from Cache.
-    /// </summary>
-    /// <param name="text"></param>
-    /// <param name="langTgt"></param>
-    /// <param name="langSrc"></param>
-    /// <returns></returns>
-    public string TranslateFromCacheOrNewSingle(string text, string langTgt = "auto", string langSrc = "auto")
-    {
-        return TranslateFromCacheOrNew(text, langSrc, langTgt).First();
+        public string Text;
+        public string TgtLang;
+        public string SrcLang;
     }
 }
 
@@ -193,6 +184,7 @@ public static class Constants
 {
     public static readonly Dictionary<string, string> Languages = new()
     {
+        {"auto", "automatic"},
         {"af", "afrikaans"},
         {"sq", "albanian"},
         {"am", "amharic"},

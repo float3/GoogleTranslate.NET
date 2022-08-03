@@ -2,17 +2,16 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
         <Product>GoogleTranslate.NET</Product>
         <Title>GoogleTranslate.NET</Title>
         <Description>A .NET Library for google translate</Description>
-        <Version>1.1.0</Version>
+        <Version>1.1.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
-        <PackageReference Include="RestSharp" Version="108.0.2-alpha.0.1"/>
     </ItemGroup>
 
 </Project>
