@@ -85,7 +85,7 @@ public class GoogleTranslator
 
 
 #pragma warning disable SYSLIB0014
-        HttpWebRequest request = (HttpWebRequest) WebRequest.Create(_url);
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(_url);
 #pragma warning restore SYSLIB0014
 
         request.Method = "POST";
@@ -100,7 +100,7 @@ public class GoogleTranslator
         requestStream.Write(bytes, 0, bytes.Length);
         requestStream.Close();
 
-        HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
         Stream responseStream = response.GetResponseStream();
 
@@ -141,7 +141,7 @@ public class GoogleTranslator
             // ignored
         }
 
-        TranslationParams translationParams = new() {Text = text, SrcLang = srcLang, TgtLang = tgtLang};
+        TranslationParams translationParams = new() { Text = text, SrcLang = srcLang, TgtLang = tgtLang };
 
         if (!Cache.ContainsKey(translationParams))
         {
@@ -162,7 +162,7 @@ public class GoogleTranslator
     /// <returns></returns>
     public List<string> TranslateFromCacheOrNew(string text, string tgtLang = "auto", string srcLang = "auto")
     {
-        TranslationParams translationParams = new() {Text = text, SrcLang = srcLang, TgtLang = tgtLang};
+        TranslationParams translationParams = new() { Text = text, SrcLang = srcLang, TgtLang = tgtLang };
 
         if (Cache.ContainsKey(translationParams))
         {
