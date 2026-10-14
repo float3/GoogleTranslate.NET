@@ -40,7 +40,7 @@ public class Tests
     [Test]
     public void ParseTest()
     {
-        List<string> test = _translator.Translate("Hi", "eng", "de");
+        List<string> test = _translator.Translate("Hi", "de", "en");
         if (test.Count > 0 && !string.IsNullOrEmpty(test[0]))
         {
             Assert.Pass("Parse Test Passed");
@@ -54,36 +54,40 @@ public class Tests
     [Test]
     public void TranslateTest()
     {
-        List<string> test = _translator.Translate("Hi", "eng", "de");
-        if (test[0] == "Hi")
+        // Google's exact wording is its own business and changes; assert the
+        // sense of the translation rather than the whole string.
+        List<string> test = _translator.Translate("guten morgen", "en", "de");
+        if (test.Count > 0 && test[0].Contains("morning", StringComparison.OrdinalIgnoreCase))
         {
             Assert.Pass("Translate Test Passed");
         }
         else
         {
-            Assert.Fail("Translate Test Failed");
+            Assert.Fail("Translate Test Failed, got: " + string.Join(" | ", test));
         }
     }
 
     [Test]
     public void CacheTest()
     {
-        _translator.Translate("Hi", "eng", "de");
+        List<string> fresh = _translator.Translate("guten morgen", "en", "de");
 
         GoogleTranslator.TranslationParams translationParams = new()
         {
-            Text = "Hi",
-            TgtLang = "eng",
+            Text = "guten morgen",
+            TgtLang = "en",
             SrcLang = "de",
         };
 
-        if (_translator.Cache[translationParams][0] == "Hi")
+        if (_translator.Cache.TryGetValue(translationParams, out List<string> cached)
+            && cached.Count == fresh.Count
+            && cached[0] == fresh[0])
         {
-            Assert.Pass("Translate Test Passed");
+            Assert.Pass("Cache Test Passed");
         }
         else
         {
-            Assert.Fail("Translate Test Failed");
+            Assert.Fail("Cache Test Failed");
         }
     }
 }

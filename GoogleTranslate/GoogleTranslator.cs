@@ -80,7 +80,7 @@ public class GoogleTranslator
 
         if (text.Length == 0) throw new Exception("Empty Input");
 
-        string freq = PackageRPC(text, srcLang, tgtLang);
+        string freq = PackageRPC(text, tgtLang, srcLang);
         byte[] bytes = Encoding.ASCII.GetBytes(freq);
 
 
