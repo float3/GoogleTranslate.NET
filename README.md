@@ -1,16 +1,16 @@
 # GoogleTranslate.NET
 
-### Version 1.1.0
+### version 1.1.0
 
-A free and unlimited .NET Library for google translate without an API Key.
+a free and unlimited .NET library for google translate without an API key.
 
-**This Library is only for Private, Open-Source, or Academic use.**
+**this library is only for private, open-source, or academic use.**
 
-**Do not use this Library for commercial use!**
+**do not use this library for commercial use!**
 
-**For commercial use, please get an API key and use official Libraries. https://cloud.google.com/translate/docs/setup.**
+**for commercial use, please get an API key and use official libraries. https://cloud.google.com/translate/docs/setup.**
 
-# Usage
+# usage
 ```cs
 using GoogleTranslate;
 
@@ -26,7 +26,7 @@ string result3 = translator.TranslateSingle("Hi", targetLang, "auto");
 string result4 = translator.TranslateFromCacheOrNewSingle("Hi", targetLang, "auto");
 ```
 
-# License
+# license
 Copyright (C) 2022  3
 
 This program is free software: you can redistribute it and/or modify
